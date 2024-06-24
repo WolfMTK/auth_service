@@ -1,5 +1,5 @@
-use axum::Router;
 use axum::routing::get;
+use axum::Router;
 
 struct Address {
     host: String,
@@ -17,7 +17,7 @@ fn get_addr() -> Address {
 
     match std::env::var("SERVER_HOST") {
         Ok(val) => host = val,
-        Err(_) => host = String::from("0.0.0.0")
+        Err(_) => host = String::from("0.0.0.0"),
     }
     Address { host, port }
 }
@@ -29,10 +29,13 @@ async fn hello() -> String {
 pub async fn start_server() {
     let addr = get_addr();
     let app = Router::new().route("/", get(hello));
-    let listener = tokio::net::TcpListener::bind(
-        format!("{}:{}", addr.host, addr.port)
-    ).await.unwrap();
+    let listener = tokio::net::TcpListener::bind(format!("{}:{}", addr.host, addr.port))
+        .await
+        .unwrap();
 
-    println!("Server has launched from http://{}:{}", addr.host, addr.port);
+    println!(
+        "Server has launched from http://{}:{}",
+        addr.host, addr.port
+    );
     axum::serve(listener, app).await.unwrap();
 }
