@@ -4,7 +4,7 @@
 
 1. Add database to environment variables:
 
-`export DATABASE_URL=postgresql://postgres:password@localhost:5432/auth`
+  `export DATABASE_URL=postgresql://postgres:password@localhost:5432/auth`
 
 2. Create database: `cargo sqlx database create`
 
