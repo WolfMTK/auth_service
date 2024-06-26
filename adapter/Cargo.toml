@@ -1,0 +1,13 @@
+[package]
+name = "adapter"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+kernel = { path = "../kernel" }
+anyhow = "1.0.86"
+async-trait = "0.1.80"
+chrono = "0.4.38"
+serde = { version = "1.0.203", features = ["derive"] }
+sqlx = { version = "0.7.4", features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid"] }
+tokio = { version = "1.38.0", features = ["full"] }
