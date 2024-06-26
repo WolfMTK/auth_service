@@ -2,9 +2,7 @@
 
 # Local Started
 
-1. Add database to environment variables:
-
-  `export DATABASE_URL=postgresql://postgres:password@localhost:5432/auth`
+1. Add database to environment variables: [example.env](example.env)
 
 2. Create database: `cargo sqlx database create`
 
