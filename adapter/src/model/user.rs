@@ -1,6 +1,6 @@
 use sqlx::FromRow;
 
-use kernel::model::user::{NewUser, User};
+use kernel::model::user::{NewUser, UpdateUser, User};
 
 #[derive(FromRow, Debug)]
 pub struct StoredUser {
@@ -34,6 +34,24 @@ pub struct InsertUser {
 impl From<NewUser> for InsertUser {
     fn from(value: NewUser) -> Self {
         InsertUser {
+            id: value.id.value.to_string(),
+            username: value.username,
+            email: value.email,
+            password: value.password,
+        }
+    }
+}
+
+pub struct UpdateStoredUser {
+    pub id: String,
+    pub username: Option<String>,
+    pub email: Option<String>,
+    pub password: Option<String>,
+}
+
+impl From<UpdateUser> for UpdateStoredUser {
+    fn from(value: UpdateUser) -> Self {
+        UpdateStoredUser {
             id: value.id.value.to_string(),
             username: value.username,
             email: value.email,
