@@ -1,5 +1,7 @@
 use std::marker::PhantomData;
-
+use argon2::{Argon2, PasswordHasher};
+use argon2::password_hash::rand_core::OsRng;
+use argon2::password_hash::SaltString;
 use anyhow::anyhow;
 use ulid::Ulid;
 
@@ -32,4 +34,11 @@ impl<T> TryFrom<String> for Id<T> {
             .map(|id| Self::new(id))
             .map_err(|err| anyhow!("{:?}", err))
     }
+}
+
+pub fn hash_password(val: String) -> String {
+    let argon2 = Argon2::default();
+    let salt = SaltString::generate(&mut OsRng);
+
+    argon2.hash_password(val.as_bytes(), &salt).unwrap().to_string()
 }
