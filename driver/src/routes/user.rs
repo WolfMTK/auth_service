@@ -45,14 +45,34 @@ pub async fn update_user(
         (StatusCode::OK, Json(json))
     })
         .map_err(|err| {
-            println!("{}", err);
             error!("{:?}", err);
             StatusCode::INTERNAL_SERVER_ERROR
         })
 }
 
-pub async fn get_user() {
-    todo!("")
+pub async fn get_user(
+    _: ApiVersion,
+    Path((_v, id)): Path<(ApiVersion, String)>,
+    modules: State<Arc<Modules>>,
+) -> Result<impl IntoResponse, StatusCode> {
+    let resp = modules.user_use_case().get_user(id).await;
+
+    match resp {
+        Ok(val) => val
+            .map(|val| {
+                info!("Get user `{}`", val.id);
+                let json: JsonUser = val.into();
+                (StatusCode::OK, Json(json))
+            })
+            .ok_or_else(|| {
+                error!("User is not found");
+                StatusCode::NOT_FOUND
+            }),
+        Err(err) => {
+            error!("{:?}", err);
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
 }
 
 pub async fn get_users() {
