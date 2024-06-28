@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use application::model::user::{CreateUser, UserView};
+use crate::model::email::Email;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -25,7 +26,7 @@ impl From<UserView> for JsonUser {
 #[serde(rename_all = "camelCase")]
 pub struct JsonCreateUser {
     pub username: String,
-    pub email: String,
+    pub email: Email,
     pub password: String,
 }
 
@@ -33,7 +34,7 @@ impl From<JsonCreateUser> for CreateUser {
     fn from(value: JsonCreateUser) -> Self {
         CreateUser {
             username: value.username,
-            email: value.email,
+            email: value.email.into_inner(),
             password: value.password,
         }
     }
