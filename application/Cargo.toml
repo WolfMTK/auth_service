@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-kernel = {path = "../kernel"}
-adapter = {path = "../adapter"}
+kernel = { path = "../kernel" }
+adapter = { path = "../adapter" }
 anyhow = "1.0.86"
 chrono = "0.4.38"
-tokio = {version = "1.38.0", features = ["full"]}
+tokio = { version = "1.38.0", features = ["full"] }
