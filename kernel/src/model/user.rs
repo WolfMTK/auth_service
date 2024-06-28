@@ -1,8 +1,4 @@
-use argon2::{Argon2, PasswordHasher};
-use argon2::password_hash::rand_core::OsRng;
-use argon2::password_hash::SaltString;
-
-use crate::model::Id;
+use crate::model::{hash_password, Id};
 
 pub struct User {
     pub id: Id<User>,
@@ -20,13 +16,34 @@ pub struct NewUser {
 
 impl NewUser {
     pub fn new(id: Id<User>, username: String, email: String, mut password: String) -> Self {
-        let argon2 = Argon2::default();
-        let salt = SaltString::generate(&mut OsRng);
+        password = hash_password(password);
 
-        password = argon2
-            .hash_password(password.as_bytes(), &salt)
-            .unwrap()
-            .to_string();
+        Self {
+            id,
+            username,
+            email,
+            password,
+        }
+    }
+}
+
+pub struct UpdateUser {
+    pub id: Id<User>,
+    pub username: Option<String>,
+    pub email: Option<String>,
+    pub password: Option<String>,
+}
+
+impl UpdateUser {
+    pub fn new(
+        id: Id<User>,
+        username: Option<String>,
+        email: Option<String>,
+        mut password: Option<String>,
+    ) -> Self {
+        if password.is_some() {
+            password = Option::from(hash_password(password.unwrap().to_string()))
+        }
 
         Self {
             id,
