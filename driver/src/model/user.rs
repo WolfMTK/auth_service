@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-use application::model::user::{CreateUser, UserView};
+use application::model::user::{CreateUser, UpdateUserView, UserView};
 
 use crate::model::email::Email;
 
@@ -38,5 +38,19 @@ impl From<JsonCreateUser> for CreateUser {
             email: value.email.into_inner(),
             password: value.password,
         }
+    }
+}
+
+#[derive(Deserialize, Debug, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct JsonUpdateUser {
+    pub username: Option<String>,
+    pub email: Option<String>,
+    pub password: Option<String>,
+}
+
+impl JsonUpdateUser {
+    pub fn to_view(self, id: String) -> UpdateUserView {
+        UpdateUserView::new(id, self.username, self.email, self.password)
     }
 }
