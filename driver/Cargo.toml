@@ -18,3 +18,4 @@ tower = "0.4.13"
 tower-http = { version = "0.5.2", features = ["cors"] }
 thiserror = "1.0.61"
 validator = { version = "0.18.1", features = ["derive"] }
+regex = "1.10.5"
