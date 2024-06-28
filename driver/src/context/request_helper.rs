@@ -1,17 +1,18 @@
-use crate::context::errors::AppError;
-use crate::context::validate::ValidatedRequest;
-use axum::extract::rejection::JsonRejection;
-use axum::extract::{FromRequest, Request};
 use axum::{async_trait, Json};
+use axum::extract::{FromRequest, Request};
+use axum::extract::rejection::JsonRejection;
 use serde::de::DeserializeOwned;
 use validator::Validate;
+
+use crate::context::errors::AppError;
+use crate::context::validate::ValidatedRequest;
 
 #[async_trait]
 impl<T, S> FromRequest<S> for ValidatedRequest<T>
 where
     T: DeserializeOwned + Validate,
     S: Send + Sync,
-    Json<T>: FromRequest<S, Rejection = JsonRejection>,
+    Json<T>: FromRequest<S, Rejection=JsonRejection>,
 {
     type Rejection = AppError;
 

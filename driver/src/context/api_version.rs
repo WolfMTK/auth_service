@@ -1,9 +1,11 @@
-use crate::context::errors::AppError;
+use std::collections::HashMap;
+
+use axum::{async_trait, RequestPartsExt};
 use axum::extract::{FromRequestParts, Path};
 use axum::http::request::Parts;
-use axum::{async_trait, RequestPartsExt};
 use serde::Deserialize;
-use std::collections::HashMap;
+
+use crate::context::errors::AppError;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]

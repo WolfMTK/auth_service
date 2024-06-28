@@ -1,9 +1,11 @@
-use kernel::model::user::{NewUser, User};
-use kernel::repository::user::UserRepository;
-use crate::repository::DatabaseRepositoryImpl;
 use async_trait::async_trait;
 use sqlx::{query, query_as};
+
+use kernel::model::user::{NewUser, User};
+use kernel::repository::user::UserRepository;
+
 use crate::model::user::{InsertUser, StoredUser};
+use crate::repository::DatabaseRepositoryImpl;
 
 #[async_trait]
 impl UserRepository for DatabaseRepositoryImpl<User> {

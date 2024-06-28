@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+
 use crate::model::user::{NewUser, User};
 
 #[async_trait]

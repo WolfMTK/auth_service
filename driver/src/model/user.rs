@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 use application::model::user::{CreateUser, UserView};
+
 use crate::model::email::Email;
 
 #[derive(Debug, Serialize)]

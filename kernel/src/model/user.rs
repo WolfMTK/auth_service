@@ -1,7 +1,8 @@
-use crate::model::Id;
+use argon2::{Argon2, PasswordHasher};
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
-use argon2::{Argon2, PasswordHasher};
+
+use crate::model::Id;
 
 pub struct User {
     pub id: Id<User>,

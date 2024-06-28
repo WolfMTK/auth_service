@@ -1,4 +1,5 @@
 use sqlx::FromRow;
+
 use kernel::model::user::{NewUser, User};
 
 #[derive(FromRow, Debug)]
@@ -6,7 +7,7 @@ pub struct StoredUser {
     pub id: String,
     pub username: String,
     pub email: String,
-    pub password: String
+    pub password: String,
 }
 
 impl TryFrom<StoredUser> for User {
@@ -17,7 +18,7 @@ impl TryFrom<StoredUser> for User {
             id: value.id.try_into()?,
             username: value.username,
             email: value.email,
-            password: value.password
+            password: value.password,
         })
     }
 }
@@ -27,7 +28,7 @@ pub struct InsertUser {
     pub id: String,
     pub username: String,
     pub email: String,
-    pub password: String
+    pub password: String,
 }
 
 impl From<NewUser> for InsertUser {
@@ -36,7 +37,7 @@ impl From<NewUser> for InsertUser {
             id: value.id.value.to_string(),
             username: value.username,
             email: value.email,
-            password: value.password
+            password: value.password,
         }
     }
 }

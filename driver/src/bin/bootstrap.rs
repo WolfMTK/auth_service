@@ -1,7 +1,7 @@
 use std::sync::Arc;
+
 use driver::module::Modules;
 use driver::startup::startup;
-
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
