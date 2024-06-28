@@ -14,6 +14,19 @@ impl<R: RepositoriesModuleExt> UserUseCase<R> {
         Self { repositories }
     }
 
+    pub async fn get_user(&self, id: String) -> anyhow::Result<Option<UserView>> {
+        let resp = self
+            .repositories
+            .user_repository()
+            .get(&id.try_into()?)
+            .await?;
+
+        match resp {
+            Some(val) => Ok(Some(val.into())),
+            None => Ok(None),
+        }
+    }
+
     pub async fn create_user(&self, source: CreateUser) -> anyhow::Result<UserView> {
         let user_view = self
             .repositories
