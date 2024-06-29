@@ -53,4 +53,17 @@ impl<R: RepositoriesModuleExt> UserUseCase<R> {
 
         Ok(user_view.into())
     }
+
+    pub async fn delete_user(&self, id: String) -> anyhow::Result<Option<UserView>> {
+        let resp = self
+            .repositories
+            .user_repository()
+            .delete(&id.try_into()?)
+            .await?;
+
+        match resp {
+            Some(val) => Ok(Some(val.into())),
+            None => Ok(None),
+        }
+    }
 }
