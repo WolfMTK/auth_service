@@ -23,6 +23,17 @@ impl From<UserView> for JsonUser {
     }
 }
 
+#[derive(Debug, Serialize)]
+pub struct JsonUserId {
+    pub id: String,
+}
+
+impl From<UserView> for JsonUserId {
+    fn from(value: UserView) -> Self {
+        Self { id: value.id }
+    }
+}
+
 #[derive(Deserialize, Debug, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct JsonCreateUser {
