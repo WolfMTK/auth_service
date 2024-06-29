@@ -7,12 +7,12 @@ use axum::Router;
 use tokio::net::TcpListener;
 
 use crate::module::Modules;
-use crate::routes::user::{create_user, get_user, update_user};
+use crate::routes::user::{create_user, delete_user, get_user, update_user};
 
 pub async fn startup(modules: Arc<Modules>) {
     let user_router = Router::new()
         .route("/", post(create_user))
-        .route("/:id", get(get_user).put(update_user));
+        .route("/:id", get(get_user).put(update_user).delete(delete_user));
 
     let app = Router::new()
         .nest("/:v/users", user_router)
@@ -33,12 +33,14 @@ fn init_addr() -> (IpAddr, u16) {
     let ip_addr = match env::var("HOST") {
         Ok(val) => val.parse::<IpAddr>(),
         Err(_) => "127.0.0.1".parse::<IpAddr>(),
-    }.expect("HOST is invalid.");
+    }
+    .expect("HOST is invalid.");
 
     let port = match env::var("PORT") {
         Ok(val) => val.parse::<u16>(),
-        Err(_) => Ok(8000)
-    }.expect("PORT is invalid.");
+        Err(_) => Ok(8000),
+    }
+    .expect("PORT is invalid.");
 
     (ip_addr, port)
 }
