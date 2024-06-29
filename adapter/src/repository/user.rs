@@ -2,8 +2,8 @@ use async_trait::async_trait;
 use sqlx::{query, query_as};
 
 use kernel::model::{
-    Id,
     user::{NewUser, UpdateUser, User},
+    Id,
 };
 use kernel::repository::user::UserRepository;
 
@@ -114,5 +114,42 @@ impl UserRepository for DatabaseRepositoryImpl<User> {
             .await?;
 
         Ok(stored_user.try_into()?)
+    }
+
+    async fn delete(&self, id: &Id<User>) -> anyhow::Result<Option<User>> {
+        let pool = self.db.0.clone();
+        let get_sql = r#"
+            select
+                u.id as id,
+                u.username as username,
+                u.email as email,
+                u.password as password
+            from
+                users as u
+            where
+                u.id = $1
+        "#;
+
+        let stored_user = query_as::<_, StoredUser>(get_sql)
+            .bind(id.value.to_string())
+            .fetch_one(&*pool)
+            .await
+            .ok();
+
+        match stored_user {
+            Some(val) => {
+                let delete_sql = r#"
+                    delete from users where id = $1
+                "#;
+
+                let _ = query(delete_sql)
+                    .bind(id.value.to_string())
+                    .execute(&*pool)
+                    .await?;
+
+                Ok(Some(val.try_into()?))
+            }
+            None => Ok(None),
+        }
     }
 }
