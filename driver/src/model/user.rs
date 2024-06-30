@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use validator::Validate;
+use validator::{Validate, ValidateLength};
 
 use application::model::user::{CreateUser, UpdateUserView, UserView};
 
@@ -63,5 +63,27 @@ pub struct JsonUpdateUser {
 impl JsonUpdateUser {
     pub fn to_view(self, id: String) -> UpdateUserView {
         UpdateUserView::new(id, self.username, self.email, self.password)
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct JsonUserList {
+    pub total: u32,
+    pub limit: u32,
+    pub offset: u32,
+    pub users: Vec<JsonUser>,
+}
+
+impl JsonUserList {
+    pub fn new(limit: u32, offset: u32, users: Vec<JsonUser>) -> Self {
+        let total = users.length().unwrap_or_else(|| 0) as u32;
+
+        Self {
+            total,
+            limit,
+            offset,
+            users,
+        }
     }
 }

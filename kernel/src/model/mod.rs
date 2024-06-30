@@ -1,10 +1,11 @@
-use std::marker::PhantomData;
-use argon2::{Argon2, PasswordHasher};
+use anyhow::anyhow;
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
-use anyhow::anyhow;
+use argon2::{Argon2, PasswordHasher};
+use std::marker::PhantomData;
 use ulid::Ulid;
 
+pub mod paginate;
 pub mod user;
 
 #[derive(Debug)]
@@ -40,5 +41,8 @@ pub fn hash_password(val: String) -> String {
     let argon2 = Argon2::default();
     let salt = SaltString::generate(&mut OsRng);
 
-    argon2.hash_password(val.as_bytes(), &salt).unwrap().to_string()
+    argon2
+        .hash_password(val.as_bytes(), &salt)
+        .unwrap()
+        .to_string()
 }
