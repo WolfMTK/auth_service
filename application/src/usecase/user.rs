@@ -3,6 +3,7 @@ use std::sync::Arc;
 use adapter::modules::RepositoriesModuleExt;
 use kernel::{model::user::UpdateUser, repository::user::UserRepository};
 
+use crate::model::paginate::PaginateView;
 use crate::model::user::{CreateUser, UpdateUserView, UserView};
 
 pub struct UserUseCase<R: RepositoriesModuleExt> {
@@ -23,6 +24,22 @@ impl<R: RepositoriesModuleExt> UserUseCase<R> {
 
         match resp {
             Some(val) => Ok(Some(val.into())),
+            None => Ok(None),
+        }
+    }
+
+    pub async fn get_users(&self, paginate: PaginateView) -> anyhow::Result<Option<Vec<UserView>>> {
+        let resp = self
+            .repositories
+            .user_repository()
+            .get_all(paginate.into())
+            .await?;
+
+        match resp {
+            Some(val) => {
+                let user_list = val.into_iter().map(|user| user.into()).collect();
+                Ok(Some(user_list))
+            }
             None => Ok(None),
         }
     }

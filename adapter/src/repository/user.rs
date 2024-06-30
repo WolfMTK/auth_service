@@ -2,8 +2,9 @@ use async_trait::async_trait;
 use sqlx::{query, query_as};
 
 use kernel::model::{
-    user::{NewUser, UpdateUser, User},
     Id,
+    paginate::LimitAndQuery,
+    user::{NewUser, UpdateUser, User},
 };
 use kernel::repository::user::UserRepository;
 
@@ -33,6 +34,38 @@ impl UserRepository for DatabaseRepositoryImpl<User> {
 
         match stored_user {
             Some(val) => Ok(Some(val.try_into()?)),
+            None => Ok(None),
+        }
+    }
+
+    async fn get_all(&self, limit_and_query: LimitAndQuery) -> anyhow::Result<Option<Vec<User>>> {
+        let pool = self.db.0.clone();
+        let limit = limit_and_query.limit;
+        let offset = limit_and_query.offset;
+
+        let get_sql = r#"
+            select
+                u.id as id,
+                u.username as username,
+                u.email as email,
+                u.password as password
+            from
+                users as u
+            order by u.id asc
+            limit $1 offset $2
+        "#;
+        let stored_user_list = query_as::<_, StoredUser>(get_sql)
+            .bind(limit)
+            .bind(offset)
+            .fetch_all(&*pool)
+            .await
+            .ok();
+
+        match stored_user_list {
+            Some(val) => {
+                let users = val.into_iter().flat_map(|ut| ut.try_into()).collect();
+                Ok(Some(users))
+            }
             None => Ok(None),
         }
     }
