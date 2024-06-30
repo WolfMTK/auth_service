@@ -2,7 +2,7 @@
 
 # Local Started
 
-1. Add database to environment variables: [example.env](example.env)
+1. Add database to environment variables (Don't create a separate .env file): [example.env](example.env)
 
 2. Create database: `cargo sqlx database create`
 
