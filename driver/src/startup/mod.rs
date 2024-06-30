@@ -2,16 +2,16 @@ use std::env;
 use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
 
-use axum::routing::{get, post};
+use axum::routing::get;
 use axum::Router;
 use tokio::net::TcpListener;
 
 use crate::module::Modules;
-use crate::routes::user::{create_user, delete_user, get_user, update_user};
+use crate::routes::user::{create_user, delete_user, get_user, update_user, get_users};
 
 pub async fn startup(modules: Arc<Modules>) {
     let user_router = Router::new()
-        .route("/", post(create_user))
+        .route("/", get(get_users).post(create_user))
         .route("/:id", get(get_user).put(update_user).delete(delete_user));
 
     let app = Router::new()

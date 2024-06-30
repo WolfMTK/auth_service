@@ -1,14 +1,16 @@
 use std::sync::Arc;
 
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::Json;
 use tracing::log::{error, info};
 
 use crate::context::api_version::ApiVersion;
+use crate::context::response_helper::JsonErrorResponse;
 use crate::context::validate::ValidatedRequest;
-use crate::model::user::{JsonCreateUser, JsonUpdateUser, JsonUser, JsonUserId};
+use crate::model::paginate::PaginateQuery;
+use crate::model::user::{JsonCreateUser, JsonUpdateUser, JsonUser, JsonUserId, JsonUserList};
 use crate::module::{Modules, ModulesExt};
 
 pub async fn create_user(
@@ -75,8 +77,42 @@ pub async fn get_user(
     }
 }
 
-pub async fn get_users() {
-    todo!()
+pub async fn get_users(
+    _: ApiVersion,
+    Query(query): Query<PaginateQuery>,
+    modules: State<Arc<Modules>>
+) -> Result<impl IntoResponse, impl IntoResponse> {
+    let limit = query.limit;
+    let offset = query.offset;
+    let resp = modules.user_use_case().get_users(query.into()).await;
+
+    match resp {
+        Ok(values) => match values {
+            Some(val) => {
+                let users = val.into_iter().map(|user| user.into()).collect();
+                let json = JsonUserList::new(limit, offset, users);
+                Ok((StatusCode::OK, Json(json)))
+            },
+            None => {
+                let json = JsonUserList::new(limit, offset, vec![]);
+                Ok((StatusCode::OK, Json(json)))
+            }
+        },
+        Err(err) => {
+            error!("Unexpected error: {:?}", err);
+
+            if err.to_string() == *"`statusCode` is invalid."{
+                let json = JsonErrorResponse::new("invalid_request".to_string(), vec![err.to_string()]);
+                Err((StatusCode::BAD_REQUEST, Json(json)))
+            } else {
+                let json = JsonErrorResponse::new(
+                    "server_error".to_string(),
+                    vec!["INTERNAL SERVER ERROR".to_string()],
+                );
+                Err((StatusCode::INTERNAL_SERVER_ERROR, Json(json)))
+            }
+        }
+    }
 }
 
 pub async fn delete_user(
