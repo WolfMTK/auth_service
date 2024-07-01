@@ -67,20 +67,38 @@ impl<R: RepositoriesModuleExt> UserUseCase<R> {
     }
 
     pub async fn update_user(&self, source: UpdateUserView) -> anyhow::Result<UserView> {
-        let update_user = UpdateUser::new(
-            source.id.try_into()?,
-            source.username,
-            source.email,
-            source.password,
-        );
+        let username = match &source.username {
+            Some(val) => val.to_string(),
+            None => String::new(),
+        };
+        let email = match &source.email {
+            Some(val) => val.to_string(),
+            None => String::new(),
+        };
 
-        let user_view = self
+        let checking_user = self
             .repositories
             .user_repository()
-            .update(update_user)
+            .check_user(email, username)
             .await?;
+        if checking_user {
+            Err(anyhow!("User exists"))
+        } else {
+            let update_user = UpdateUser::new(
+                source.id.try_into()?,
+                source.username,
+                source.email,
+                source.password,
+            );
 
-        Ok(user_view.into())
+            let user_view = self
+                .repositories
+                .user_repository()
+                .update(update_user)
+                .await?;
+
+            Ok(user_view.into())
+        }
     }
 
     pub async fn delete_user(&self, id: String) -> anyhow::Result<Option<UserView>> {

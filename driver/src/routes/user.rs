@@ -12,6 +12,7 @@ use crate::context::validate::ValidatedRequest;
 use crate::model::paginate::PaginateQuery;
 use crate::model::user::{JsonCreateUser, JsonUpdateUser, JsonUser, JsonUserId, JsonUserList};
 use crate::module::{Modules, ModulesExt};
+use crate::routes::errors::exists_user_error;
 
 pub async fn create_user(
     _: ApiVersion,
@@ -26,19 +27,7 @@ pub async fn create_user(
     })
         .map_err(|err| {
             error!("Unexpected error: {:?}", err);
-            if err.to_string() == *"User exists" {
-                let json = JsonErrorResponse::new(
-                    "invalid_request".to_string(),
-                    vec![err.to_string()],
-                );
-                (StatusCode::BAD_REQUEST, Json(json))
-            } else {
-                let json = JsonErrorResponse::new(
-                    "server_error".to_string(),
-                    vec!["INTERNAL SERVER ERROR".to_string()],
-                );
-                (StatusCode::INTERNAL_SERVER_ERROR, Json(json))
-            }
+            exists_user_error(err)
         })
 }
 
@@ -47,7 +36,7 @@ pub async fn update_user(
     Path((_v, id)): Path<(ApiVersion, String)>,
     modules: State<Arc<Modules>>,
     ValidatedRequest(source): ValidatedRequest<JsonUpdateUser>,
-) -> Result<impl IntoResponse, StatusCode> {
+) -> Result<impl IntoResponse, impl IntoResponse> {
     let resp = modules
         .user_use_case()
         .update_user(source.to_view(id))
@@ -58,8 +47,8 @@ pub async fn update_user(
         (StatusCode::OK, Json(json))
     })
         .map_err(|err| {
-            error!("{:?}", err);
-            StatusCode::INTERNAL_SERVER_ERROR
+            error!("Unexpected error: {:?}", err);
+            exists_user_error(err)
         })
 }
 
@@ -100,13 +89,10 @@ pub async fn get_users(
     match resp {
         Ok(val) => match val {
             Some(values) => {
-                let users = values
-                    .into_iter()
-                    .map(|user| user.into())
-                    .collect();
+                let users = values.into_iter().map(|user| user.into()).collect();
                 let json = JsonUserList::new(limit, offset, users);
                 Ok((StatusCode::OK, Json(json)))
-            },
+            }
             None => {
                 let json = JsonUserList::new(limit, offset, vec![]);
                 Ok((StatusCode::OK, Json(json)))
@@ -115,7 +101,7 @@ pub async fn get_users(
         Err(err) => {
             error!("{:?}", err);
             Err(StatusCode::INTERNAL_SERVER_ERROR)
-        },
+        }
     }
 }
 
