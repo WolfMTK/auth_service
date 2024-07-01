@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
 use axum::Json;
+use axum::response::IntoResponse;
 use tracing::log::{error, info};
 
 use crate::context::api_version::ApiVersion;
@@ -17,18 +17,26 @@ pub async fn create_user(
     _: ApiVersion,
     modules: State<Arc<Modules>>,
     ValidatedRequest(source): ValidatedRequest<JsonCreateUser>,
-) -> Result<impl IntoResponse, StatusCode> {
+) -> Result<impl IntoResponse, impl IntoResponse> {
     let resp = modules.user_use_case().create_user(source.into()).await;
-
     resp.map(|view| {
         info!("Created user: {}", view.id);
         let json: JsonUserId = view.into();
         (StatusCode::CREATED, Json(json))
     })
-    .map_err(|err| {
-        error!("{:?}", err);
-        StatusCode::INTERNAL_SERVER_ERROR
-    })
+        .map_err(|err| {
+            error!("{:?}", err);
+            if err.to_string() == *"User exists" {
+                let json = JsonErrorResponse::new("invalid_request".to_string(), vec![err.to_string()]);
+                (StatusCode::BAD_REQUEST, Json(json))
+            } else {
+                let json = JsonErrorResponse::new(
+                    "server_error".to_string(),
+                    vec!["INTERNAL SERVER ERROR".to_string()],
+                );
+                (StatusCode::INTERNAL_SERVER_ERROR, Json(json))
+            }
+        })
 }
 
 pub async fn update_user(
@@ -46,10 +54,10 @@ pub async fn update_user(
         let json: JsonUserId = view.into();
         (StatusCode::OK, Json(json))
     })
-    .map_err(|err| {
-        error!("{:?}", err);
-        StatusCode::INTERNAL_SERVER_ERROR
-    })
+        .map_err(|err| {
+            error!("{:?}", err);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })
 }
 
 pub async fn get_user(
@@ -80,7 +88,7 @@ pub async fn get_user(
 pub async fn get_users(
     _: ApiVersion,
     Query(query): Query<PaginateQuery>,
-    modules: State<Arc<Modules>>
+    modules: State<Arc<Modules>>,
 ) -> Result<impl IntoResponse, impl IntoResponse> {
     let limit = query.limit;
     let offset = query.offset;
@@ -92,7 +100,7 @@ pub async fn get_users(
                 let users = val.into_iter().map(|user| user.into()).collect();
                 let json = JsonUserList::new(limit, offset, users);
                 Ok((StatusCode::OK, Json(json)))
-            },
+            }
             None => {
                 let json = JsonUserList::new(limit, offset, vec![]);
                 Ok((StatusCode::OK, Json(json)))
@@ -101,7 +109,7 @@ pub async fn get_users(
         Err(err) => {
             error!("Unexpected error: {:?}", err);
 
-            if err.to_string() == *"`statusCode` is invalid."{
+            if err.to_string() == *"`statusCode` is invalid." {
                 let json = JsonErrorResponse::new("invalid_request".to_string(), vec![err.to_string()]);
                 Err((StatusCode::BAD_REQUEST, Json(json)))
             } else {

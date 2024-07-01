@@ -37,6 +37,32 @@ impl UserRepository for DatabaseRepositoryImpl<User> {
             None => Ok(None),
         }
     }
+    
+    async fn check_user(&self, email: String, username: String) -> anyhow::Result<bool> {
+        let pool = self.db.0.clone();
+        let get_sql = r#"
+            select
+                u.id as id,
+                u.username as username,
+                u.email as email,
+                u.password as password
+            from
+                users as u
+            where
+                u.email = $1 OR u.username = $2
+        "#;
+        let stored_user = query_as::<_, StoredUser>(get_sql)
+            .bind(email)
+            .bind(username)
+            .fetch_one(&*pool)
+            .await
+            .ok();
+
+        match stored_user {
+            Some(_) => Ok(true),
+            None => Ok(false)
+        }
+    }
 
     async fn get_all(&self, limit_and_query: LimitAndQuery) -> anyhow::Result<Option<Vec<User>>> {
         let pool = self.db.0.clone();

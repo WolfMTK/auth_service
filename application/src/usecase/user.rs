@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use anyhow::anyhow;
+
 use adapter::modules::RepositoriesModuleExt;
 use kernel::{model::user::UpdateUser, repository::user::UserRepository};
 
@@ -45,13 +47,23 @@ impl<R: RepositoriesModuleExt> UserUseCase<R> {
     }
 
     pub async fn create_user(&self, source: CreateUser) -> anyhow::Result<UserView> {
-        let user_view = self
+        let email = source.email.to_string();
+        let username = source.username.to_string();
+        let checking_user = self
             .repositories
             .user_repository()
-            .insert(source.try_into()?)
+            .check_user(email, username)
             .await?;
-
-        Ok(user_view.into())
+        if checking_user {
+            Err(anyhow!("User exists"))
+        } else {
+            let user_view = self
+                .repositories
+                .user_repository()
+                .insert(source.try_into()?)
+                .await?;
+            Ok(user_view.into())
+        }
     }
 
     pub async fn update_user(&self, source: UpdateUserView) -> anyhow::Result<UserView> {
