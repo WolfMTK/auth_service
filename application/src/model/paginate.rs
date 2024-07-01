@@ -13,6 +13,8 @@ impl PaginateView {
 
 impl From<PaginateView> for LimitAndQuery {
     fn from(value: PaginateView) -> Self {
-        LimitAndQuery::new(value.limit as i32, value.offset as i32)
+        let limit = value.limit;
+        let offset = value.offset * limit;
+        LimitAndQuery::new(limit as i32, offset as i32)
     }
 }

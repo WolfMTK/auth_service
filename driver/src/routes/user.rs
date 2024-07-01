@@ -25,7 +25,7 @@ pub async fn create_user(
         (StatusCode::CREATED, Json(json))
     })
         .map_err(|err| {
-            error!("{:?}", err);
+            error!("Unexpected error: {:?}", err);
             if err.to_string() == *"User exists" {
                 let json = JsonErrorResponse::new("invalid_request".to_string(), vec![err.to_string()]);
                 (StatusCode::BAD_REQUEST, Json(json))
@@ -95,30 +95,18 @@ pub async fn get_users(
     let resp = modules.user_use_case().get_users(query.into()).await;
 
     match resp {
-        Ok(values) => match values {
-            Some(val) => {
-                let users = val.into_iter().map(|user| user.into()).collect();
-                let json = JsonUserList::new(limit, offset, users);
-                Ok((StatusCode::OK, Json(json)))
-            }
-            None => {
-                let json = JsonUserList::new(limit, offset, vec![]);
-                Ok((StatusCode::OK, Json(json)))
-            }
-        },
+        Ok(Some(val)) => {
+            let users = val.into_iter().map(|user| user.into()).collect();
+            let json = JsonUserList::new(limit, offset, users);
+            Ok((StatusCode::OK, Json(json)))
+        }
+        Ok(None) => {
+            let json = JsonUserList::new(limit, offset, vec![]);
+            Ok((StatusCode::OK, Json(json)))
+        }
         Err(err) => {
-            error!("Unexpected error: {:?}", err);
-
-            if err.to_string() == *"`statusCode` is invalid." {
-                let json = JsonErrorResponse::new("invalid_request".to_string(), vec![err.to_string()]);
-                Err((StatusCode::BAD_REQUEST, Json(json)))
-            } else {
-                let json = JsonErrorResponse::new(
-                    "server_error".to_string(),
-                    vec!["INTERNAL SERVER ERROR".to_string()],
-                );
-                Err((StatusCode::INTERNAL_SERVER_ERROR, Json(json)))
-            }
+            error!("{:?}", err);
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
         }
     }
 }
