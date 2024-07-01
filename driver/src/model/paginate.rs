@@ -1,12 +1,16 @@
-use application::model::paginate::PaginateView;
 use serde::Deserialize;
+use validator::Validate;
 
-#[derive(Debug, Deserialize)]
+use application::model::paginate::PaginateView;
+
+#[derive(Deserialize, Debug, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct PaginateQuery {
     #[serde(default = "default_limit")]
+    #[validate(range(min = 0, message = "`limit` incorrect value."))]
     pub limit: u32,
     #[serde(default = "default_offset")]
+    #[validate(range(min = 0, message = "`offset` incorrect value"))]
     pub offset: u32,
 }
 

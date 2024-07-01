@@ -27,7 +27,10 @@ pub async fn create_user(
         .map_err(|err| {
             error!("Unexpected error: {:?}", err);
             if err.to_string() == *"User exists" {
-                let json = JsonErrorResponse::new("invalid_request".to_string(), vec![err.to_string()]);
+                let json = JsonErrorResponse::new(
+                    "invalid_request".to_string(),
+                    vec![err.to_string()],
+                );
                 (StatusCode::BAD_REQUEST, Json(json))
             } else {
                 let json = JsonErrorResponse::new(
