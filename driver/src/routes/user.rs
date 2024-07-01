@@ -98,19 +98,24 @@ pub async fn get_users(
     let resp = modules.user_use_case().get_users(query.into()).await;
 
     match resp {
-        Ok(Some(val)) => {
-            let users = val.into_iter().map(|user| user.into()).collect();
-            let json = JsonUserList::new(limit, offset, users);
-            Ok((StatusCode::OK, Json(json)))
-        }
-        Ok(None) => {
-            let json = JsonUserList::new(limit, offset, vec![]);
-            Ok((StatusCode::OK, Json(json)))
-        }
+        Ok(val) => match val {
+            Some(values) => {
+                let users = values
+                    .into_iter()
+                    .map(|user| user.into())
+                    .collect();
+                let json = JsonUserList::new(limit, offset, users);
+                Ok((StatusCode::OK, Json(json)))
+            },
+            None => {
+                let json = JsonUserList::new(limit, offset, vec![]);
+                Ok((StatusCode::OK, Json(json)))
+            }
+        },
         Err(err) => {
             error!("{:?}", err);
             Err(StatusCode::INTERNAL_SERVER_ERROR)
-        }
+        },
     }
 }
 
